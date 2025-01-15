@@ -1,4 +1,7 @@
 import { Node } from './Node.js';
+import { toString } from './toString.js';
+import { fromString } from './fromString.js';
+import VERSION from '../_version.js';
 
 const reverseString = (str) => {
   return str.split('').reverse().join('');
@@ -8,7 +11,17 @@ export class Trie {
   constructor(input, direction = 'prefix') {
     this.root = new Node();
     this.direction = direction;
-    this.add(input);
+    this.version = VERSION;
+    // support for compressed string as input
+    if (typeof input === 'string') {
+      const { root, direction: dir, version } = fromString(input, Node);
+      this.root = root;
+      this.direction = dir;
+      this.version = version;
+    } else {
+      // support for object as input
+      this.add(input);
+    }
   }
 
   add(object = {}) {
@@ -57,32 +70,16 @@ export class Trie {
   }
 
   toString() {
-    const buildString = (node) => {
-      if (Object.keys(node.children).length === 0) {
-        return node.value !== null ? `[${node.value}]` : '';
-      }
+    return toString(this.root, this.direction, this.version);
+  }
 
-      let result = '';
-      const childEntries = Object.entries(node.children);
-
-      // Add value if exists
-      if (node.value !== null) {
-        result += `[${node.value}]`;
-      }
-
-      // Handle single child case without parentheses
-      if (childEntries.length === 1) {
-        const [char, childNode] = childEntries[0];
-        return result + char + buildString(childNode);
-      }
-
-      // Handle multiple children with parentheses
-      const childStrings = childEntries.map(([char, childNode]) =>
-        char + buildString(childNode)
-      );
-      return result + `(${childStrings.join('')})`;
-    };
-
-    return buildString(this.root);
+  static fromString(str) {
+    const { root, direction, version } = fromString(str, Node);
+    if (version !== VERSION) {
+      console.warn('Different Atmpt version');
+    }
+    const trie = new Trie({}, direction);
+    trie.root = root;
+    return trie;
   }
 } 

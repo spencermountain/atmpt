@@ -12,6 +12,9 @@ trie.add(obj);
 trie.print();
 console.log(trie.toString());
 
+
+
+
 // test
 // Object.entries(obj).forEach(([word, val]) => {
 //   const result = trie.get(word);

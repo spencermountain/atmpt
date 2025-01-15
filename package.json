@@ -1,6 +1,6 @@
 {
   "name": "atmpt",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A trie-based prefix/suffix manipulation library",
   "type": "module",
   "main": "src/index.js",
