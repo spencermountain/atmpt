@@ -12,11 +12,11 @@ export const prefixes = {
   b: {
     'bacon': 'Food',
     'banana': 'Food',
-    'boston': 'Place',
     'baltimore': 'Place',
-    'baking': 'Food',
-    'baking soda': 'Food',
-    'baking powder': 'Food'
+    // 'boston': 'Place',
+    // 'baking': 'Food',
+    // 'baking soda': 'Food',
+    // 'baking powder': 'Food'
   },
   c: {
     'chicken': 'Food',

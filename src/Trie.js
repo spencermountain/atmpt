@@ -55,4 +55,34 @@ export class Trie {
   print() {
     this.root.print();
   }
+
+  toString() {
+    const buildString = (node) => {
+      if (Object.keys(node.children).length === 0) {
+        return node.value !== null ? `[${node.value}]` : '';
+      }
+
+      let result = '';
+      const childEntries = Object.entries(node.children);
+
+      // Add value if exists
+      if (node.value !== null) {
+        result += `[${node.value}]`;
+      }
+
+      // Handle single child case without parentheses
+      if (childEntries.length === 1) {
+        const [char, childNode] = childEntries[0];
+        return result + char + buildString(childNode);
+      }
+
+      // Handle multiple children with parentheses
+      const childStrings = childEntries.map(([char, childNode]) =>
+        char + buildString(childNode)
+      );
+      return result + `(${childStrings.join('')})`;
+    };
+
+    return buildString(this.root);
+  }
 } 

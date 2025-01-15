@@ -3,11 +3,14 @@ import { prefixes, suffixes } from './examples.js';
 import assert from 'assert';
 
 
-let obj = suffixes.y;
-const trie = new Trie(obj, 'suffix');
+let obj = prefixes.c;
+const trie = new Trie(obj, 'prefix');
+// let obj = suffixes.y;
+// const trie = new Trie(obj, 'suffix');
 trie.add(obj);
 
 trie.print();
+console.log(trie.toString());
 
 // test
 // Object.entries(obj).forEach(([word, val]) => {
