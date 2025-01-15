@@ -1,19 +1,20 @@
 import { Trie } from './src/index.js';
-import { examples } from './examples/prefixes.js';
+import { prefixes, suffixes } from './examples.js';
 import assert from 'assert';
 
-let obj = examples.b;
-const trie = new Trie();
+
+let obj = suffixes.y;
+const trie = new Trie(obj, 'suffix');
 trie.add(obj);
 
 trie.print();
 
 // test
-Object.entries(obj).forEach(([word, val]) => {
-  const result = trie.get(word);
-  console.log(`${word} -> ${result}, ${val}`);
-  assert.strictEqual(result, val, `${word} : ${result}  (wanted ${val})`);
-});
+// Object.entries(obj).forEach(([word, val]) => {
+//   const result = trie.get(word);
+//   console.log(`${word} -> ${result}, ${val}`);
+//   assert.strictEqual(result, val, `${word} : ${result}  (wanted ${val})`);
+// });
 
 // console.log(trie.get('doughnuasdf'));
 // console.log(trie.get('doughnu'));

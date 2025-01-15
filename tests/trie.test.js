@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { Trie } from '../src/index.js';
-import { examples } from '../examples/prefixes.js';
+import { prefixes } from '../examples.js';
 
 const notWords = [
   'xyz',
@@ -15,59 +15,59 @@ const notWords = [
 
 test('Trie Tests', async (t) => {
   await t.test('check existing words', () => {
-    const trie = new Trie(examples.a);
-    Object.entries(examples.a).forEach(([word, val]) => {
+    const trie = new Trie(prefixes.a);
+    Object.entries(prefixes.a).forEach(([word, val]) => {
       assert.strictEqual(trie.get(word), val);
     });
   });
 
   await t.test('check false-positives', () => {
-    const trie = new Trie(examples.a);
+    const trie = new Trie(prefixes.a);
     notWords.forEach(word => {
       assert.strictEqual(trie.get(word), null);
     });
   });
 
-  // Add tests for examples.b
-  await t.test('examples.b', () => {
-    const trie = new Trie(examples.b);
-    Object.entries(examples.b).forEach(([word, val]) => {
+  // Add tests for prefixes.b
+  await t.test('prefixes.b', () => {
+    const trie = new Trie(prefixes.b);
+    Object.entries(prefixes.b).forEach(([word, val]) => {
       assert.strictEqual(trie.get(word), val);
     });
   });
 
   await t.test('check false-positives (set b)', () => {
-    const trie = new Trie(examples.b);
+    const trie = new Trie(prefixes.b);
     notWords.forEach(word => {
       assert.strictEqual(trie.get(word), null);
     });
   });
 
-  // Add tests for examples.c
-  await t.test('examples.c', () => {
-    const trie = new Trie(examples.c);
-    Object.entries(examples.c).forEach(([word, val]) => {
+  // Add tests for prefixes.c
+  await t.test('prefixes.c', () => {
+    const trie = new Trie(prefixes.c);
+    Object.entries(prefixes.c).forEach(([word, val]) => {
       assert.strictEqual(trie.get(word), val);
     });
   });
 
   await t.test('check false-positives (set c)', () => {
-    const trie = new Trie(examples.c);
+    const trie = new Trie(prefixes.c);
     notWords.forEach(word => {
       assert.strictEqual(trie.get(word), null);
     });
   });
 
-  // Add tests for examples.d
-  await t.test('examples.d', () => {
-    const trie = new Trie(examples.d);
-    Object.entries(examples.d).forEach(([word, val]) => {
+  // Add tests for prefixes.d
+  await t.test('prefixes.d', () => {
+    const trie = new Trie(prefixes.d);
+    Object.entries(prefixes.d).forEach(([word, val]) => {
       assert.strictEqual(trie.get(word), val);
     });
   });
 
   await t.test('check false-positives (set d)', () => {
-    const trie = new Trie(examples.d);
+    const trie = new Trie(prefixes.d);
     notWords.forEach(word => {
       assert.strictEqual(trie.get(word), null);
     });
