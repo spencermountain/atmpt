@@ -1,0 +1,22 @@
+{
+  "name": "atmpt",
+  "version": "1.0.0",
+  "description": "A trie-based prefix/suffix manipulation library",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "atmpt": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec tests/*.test.js",
+    "watch": "node --watch scratch.js"
+  },
+  "keywords": [
+    "trie",
+    "prefix",
+    "suffix",
+    "string manipulation"
+  ],
+  "author": "",
+  "license": "MIT"
+}
