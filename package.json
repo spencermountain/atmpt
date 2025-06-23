@@ -18,5 +18,9 @@
     "string manipulation"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "compromise": "^14.14.4",
+    "compromise-speed": "^0.1.2"
+  }
 }
