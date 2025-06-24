@@ -1,7 +1,9 @@
 import nlp from 'compromise'
 import fs from 'fs'
 import { streamFile } from 'compromise-speed'
+import { Trie } from '../../src/index.js';
 nlp.extend(streamFile)
+
 
 // const file = './scripts/lexicon/fresh-prince.txt'
 const file = '/Users/spencer/Desktop/infinite-jest.txt'
@@ -73,4 +75,14 @@ nlp.streamFile(file, (s) => {
   // let tmp = sorted.slice(-1200)
   let txt = sorted.map(a => `${a[0]}   ${a[1]}`).join('\n')
   fs.writeFileSync('lexicon.txt', txt)
+
+
+  // const trie = new Trie({}, 'suffix')
+
+  // sorted.forEach(a => {
+  //   trie.add(a[0])
+  // })
+  // console.log(trie)
+  // console.log(trie.toString())
+  // fs.writeFileSync('trie.json', JSON.stringify(trie.toString(), null, 2))
 })
