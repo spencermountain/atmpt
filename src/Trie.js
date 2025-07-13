@@ -1,6 +1,6 @@
-import { Node } from './Node.js';
-import { toString } from './pack/toString.js';
-import { fromString } from './pack/fromString.js';
+import Node from './Node.js';
+import fromString from './pack/fromString.js';
+import toString from './pack/toString.js';
 import VERSION from '../_version.js';
 
 const reverseString = (str) => {
@@ -16,7 +16,7 @@ class Trie {
   from(input) {
     // support for compressed string as input
     if (typeof input === 'string') {
-      const { root, direction: dir, version } = fromString(input, Node);
+      const { root, direction: dir, version } = fromString(input);
       this.root = root;
       this.direction = dir;
       this.version = version;
@@ -95,9 +95,9 @@ class Trie {
   }
 
   debug() {
-    console.log('\n')
+    console.log('\n') // eslint-disable-line
     this.root.debug();
-    console.log('\n\n')
+    console.log('\n\n') // eslint-disable-line
   }
 
   toString() {
@@ -107,10 +107,9 @@ class Trie {
     return new Node();
   }
   static fromString(str) {
-    let t = new Trie();
-    const { root, direction, version } = fromString(str, t);
+    const { root, direction, version } = fromString(str);
     if (version !== VERSION) {
-      console.warn('Different Atmpt version');
+      console.warn('Warning: Different atmpt version'); // eslint-disable-line
     }
     const trie = new Trie({}, direction);
     trie.root = root;

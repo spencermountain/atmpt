@@ -1,4 +1,4 @@
-export function toString(root, direction = 'prefix', version) {
+const toString = function (root, direction, version) {
   const valueDict = new Map();
   const frequencies = new Map();
   let nextIndex = 0;
@@ -60,4 +60,5 @@ export function toString(root, direction = 'prefix', version) {
     'suffix': 'post'
   };
   return `${directionMap[direction]}|${version}\n${dictString}\n${buildString(root)}`;
-} 
+}
+export default toString

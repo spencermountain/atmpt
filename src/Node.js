@@ -1,7 +1,10 @@
-export class Node {
-  constructor() {
+class Node {
+  constructor(label, val = null) {
+    if (label) {
+      this.label = label;
+    }
+    this.value = val;
     this.children = {};
-    this.value = null;
   }
 
   isLeaf() {
@@ -61,4 +64,5 @@ export class Node {
       child.debug(prefix + '│   ');
     }
   }
-} 
+}
+export default Node
