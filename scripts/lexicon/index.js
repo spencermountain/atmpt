@@ -5,8 +5,8 @@ import atmpt from '../../src/index.js';
 nlp.extend(streamFile)
 
 
-const file = './scripts/lexicon/fresh-prince.txt'
-// const file = '/Users/spencer/Desktop/infinite-jest.txt'
+// const file = './scripts/lexicon/fresh-prince.txt'
+const file = '/Users/spencer/Desktop/infinite-jest.txt'
 let counts = {}
 const hasPunct = /[_()<>,*&#@%.]/
 const hasChar = /[a-zA-Z]/
@@ -28,7 +28,8 @@ const blacklist = new Set([
   'schacht',
   'axford',
   'notkin',
-  'delint'
+  'delint',
+  'zegarelli'
 ])
 
 nlp.streamFile(file, (s) => {
@@ -36,7 +37,7 @@ nlp.streamFile(file, (s) => {
   // map fn on each sentence
   s.docs.forEach(a => {
     a.forEach(term => {
-      console.log(term.root, term.normal)
+      // console.log(term.root, term.normal)
       let str = term.root || term.implicit || term.normal
       if (str) {
         counts[str] = counts[str] || 0
@@ -80,8 +81,19 @@ nlp.streamFile(file, (s) => {
   sorted.forEach(a => {
     trie.add(a[0])
   })
-  console.dir(trie, { depth: null })
-  console.log(trie.toString())
-  trie.print()
+  // console.dir(trie, { depth: null })
+  // console.log(trie.toString())
+  trie.debug()
+
+  let test = [
+    'throne',
+    'pulled',
+    'pull',
+    'asdflkj'
+  ]
+  test.forEach(word => {
+    console.log(word, trie.has(word))
+  })
+
   fs.writeFileSync('trie.json', trie.toString())
 })
