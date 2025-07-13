@@ -13,6 +13,7 @@ inputs.forEach(word => {
   trie.add(word)
 })
 let packed = trie.toString()
+console.log(packed)
 trie.debug()
 
 let tests = [
@@ -21,6 +22,7 @@ let tests = [
   'spooned',
 ]
 let after = atmpt.unpack(packed)
+after.debug()
 tests.forEach(word => {
   console.log(word, after.has(word))
 })

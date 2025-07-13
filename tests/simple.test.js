@@ -27,6 +27,22 @@ test('simple overlap', (t) => {
   assert.strictEqual(trie.has('elppas'), false)
 })
 
+test('simple overlap 2', (t) => {
+  let trie = atmpt('prefix')
+  let inputs = [
+    'spoon',
+    'spoons',
+    'spooned',
+    'fork',
+  ]
+  inputs.forEach(word => {
+    trie.add(word)
+  })
+  inputs.forEach(word => {
+    assert.strictEqual(trie.has(word), true, word)
+  })
+})
+
 test('simple suffix', (t) => {
   let trie = atmpt('suffix')
   trie.add('apple')

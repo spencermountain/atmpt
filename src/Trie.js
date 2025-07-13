@@ -48,6 +48,15 @@ class Trie {
     return this;
   }
 
+  getNode(key) {
+    let node = this.root;
+    const processedKey = this.direction === 'suffix' ? reverseString(key) : key;
+    const chars = [...processedKey];
+    for (const char of chars) {
+      node = node.children[char];
+    }
+    return node;
+  }
   has(key) {
     let node = this.root;
     const processedKey = this.direction === 'suffix' ? reverseString(key) : key;
