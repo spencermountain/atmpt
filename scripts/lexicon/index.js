@@ -75,10 +75,10 @@ nlp.streamFile(file, (s) => {
   fs.writeFileSync('lexicon.txt', txt)
 
 
-  const trie = atmpt('prefix')
+  const trie = atmpt(null, 'prefix')
 
   sorted.forEach(a => {
-    trie.addWord(a[0])
+    trie.add(a[0])
   })
   console.dir(trie, { depth: null })
   console.log(trie.toString())

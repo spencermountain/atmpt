@@ -3,7 +3,7 @@ import tokenize from './01-tokenize.js'
 const strNum = /(\d+)/
 
 // interpret 'ab0c0' into ab, c
-const splitParts = function (str) {
+const splitParts = function (str, dictionary) {
   let parts = str.split(strNum)
   let res = []
   if (parts[parts.length - 1] === '') {
@@ -16,6 +16,12 @@ const splitParts = function (str) {
       val = null
     } else {
       val = parseInt(val, 10)
+      if (dictionary[val] === undefined) {
+        console.warn(`Warning: dictionary[${val}] not found`)
+        val = null
+      } else {
+        val = dictionary[val]
+      }
     }
     res.push({ str, val })
   }
@@ -31,7 +37,7 @@ const addSequence = function (word, node, val) {
     curr = curr.children[c]
   })
   // add the value on the end
-  curr.val = val
+  curr.value = val
   return curr
 }
 
@@ -43,7 +49,7 @@ const parse = function (str, dictionary) {
   for (let i = 0; i < tokens.length; i += 1) {
     let { depth, str } = tokens[i]
     // interpret 'ab0c0' into ab, c
-    let parts = splitParts(str)
+    let parts = splitParts(str, dictionary)
     let curr = stack[stack.length - 1]
     let end = null
     parts.forEach(part => {
@@ -58,6 +64,7 @@ const parse = function (str, dictionary) {
       stack.pop()
     }
   }
+  // console.dir(root, { depth: null })
   return root
 }
 export default parse

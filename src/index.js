@@ -1,6 +1,6 @@
 import Trie from './Trie.js';
 
-const atmpt = function (direction = 'suffix', input) {
+const atmpt = function (input, direction = 'suffix') {
   let trie = new Trie(direction)
   if (input) {
     trie.from(input)

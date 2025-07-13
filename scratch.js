@@ -4,12 +4,17 @@ import assert from 'assert';
 import fs from 'fs';
 
 let inputs = [
-  'pre',
-  'preone',
-  'preok',
-  'pretwo',
+  // 'pre',
+  // 'preone',
+  // 'preok',
+  // 'pretwo',
+  'spoon',
+  'spoons',
+  'spooned',
 ]
-let trie = atmpt('prefix')
+let tests = [
+]
+let trie = atmpt(null, 'prefix')
 inputs.forEach(word => {
   trie.add(word)
 })
@@ -17,14 +22,9 @@ let packed = trie.toString()
 console.log(packed)
 trie.debug()
 
-let tests = [
-  'spoon',
-  'spoons',
-  'spooned',
-]
 let after = atmpt.unpack(packed)
 after.debug()
-tests.forEach(word => {
+inputs.forEach(word => {
   console.log(word, after.has(word))
 })
 

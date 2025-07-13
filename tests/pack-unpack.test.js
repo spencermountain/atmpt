@@ -9,7 +9,7 @@ test('simple has', (t) => {
     'spooned',
     'fork',
   ]
-  let trie = atmpt('prefix', inputs)
+  let trie = atmpt(inputs, 'prefix')
   let packed = trie.toString()
   let t2 = atmpt.unpack(packed)
 

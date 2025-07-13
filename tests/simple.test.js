@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import atmpt from '../src/index.js';
 
 test('simple has', (t) => {
-  let trie = atmpt('prefix')
+  let trie = atmpt()
   assert.strictEqual(trie.has('apple'), false)
   trie.add('apple')
   assert.strictEqual(trie.has('apple'), true)
@@ -15,7 +15,7 @@ test('simple has', (t) => {
 })
 
 test('simple overlap', (t) => {
-  let trie = atmpt('prefix')
+  let trie = atmpt()
   trie.add('apple')
   trie.add('apples')
   assert.strictEqual(trie.has('apple'), true)
@@ -28,7 +28,7 @@ test('simple overlap', (t) => {
 })
 
 test('simple overlap 2', (t) => {
-  let trie = atmpt('prefix')
+  let trie = atmpt()
   let inputs = [
     'spoon',
     'spoons',
@@ -44,7 +44,7 @@ test('simple overlap 2', (t) => {
 })
 
 test('simple suffix', (t) => {
-  let trie = atmpt('suffix')
+  let trie = atmpt(null, 'suffix')
   trie.add('apple')
   trie.add('apples')
   assert.strictEqual(trie.has('apple'), true)
