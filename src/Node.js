@@ -51,14 +51,14 @@ export class Node {
     return result;
   }
 
-  print(prefix = '') {
+  debug(prefix = '') {
     if (this.value !== null) {
       console.log(`${prefix} [${this.value}]`);
     }
 
     for (const [char, child] of Object.entries(this.children)) {
       console.log(`${prefix}├── ${char}`);
-      child.print(prefix + '│   ');
+      child.debug(prefix + '│   ');
     }
   }
 } 

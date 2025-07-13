@@ -1,4 +1,4 @@
-export function fromString(str, Trie) {
+export function fromString(str, trie) {
   const [headerString, dictString, trieString] = str.split('\n');
   const [dir, version] = headerString.split('|');
   const direction = dir === 'pre' ? 'prefix' : 'suffix';
@@ -8,7 +8,7 @@ export function fromString(str, Trie) {
   const dictionary = dictString ?
     dictString.split(/(?<!\\)\|/).map(unescapeValue) : [];
 
-  const trie = new Trie(direction);
+  // const trie = new Trie(direction);
   let pos = 0;
 
   const parseNode = () => {

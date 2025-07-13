@@ -1,12 +1,12 @@
 import nlp from 'compromise'
 import fs from 'fs'
 import { streamFile } from 'compromise-speed'
-import { Trie } from '../../src/index.js';
+import atmpt from '../../src/index.js';
 nlp.extend(streamFile)
 
 
-// const file = './scripts/lexicon/fresh-prince.txt'
-const file = '/Users/spencer/Desktop/infinite-jest.txt'
+const file = './scripts/lexicon/fresh-prince.txt'
+// const file = '/Users/spencer/Desktop/infinite-jest.txt'
 let counts = {}
 const hasPunct = /[_()<>,*&#@%.]/
 const hasChar = /[a-zA-Z]/
@@ -36,6 +36,7 @@ nlp.streamFile(file, (s) => {
   // map fn on each sentence
   s.docs.forEach(a => {
     a.forEach(term => {
+      console.log(term.root, term.normal)
       let str = term.root || term.implicit || term.normal
       if (str) {
         counts[str] = counts[str] || 0
@@ -70,19 +71,17 @@ nlp.streamFile(file, (s) => {
     }
     return true
   })
-
-  console.log(sorted.length)
-  // let tmp = sorted.slice(-1200)
   let txt = sorted.map(a => `${a[0]}   ${a[1]}`).join('\n')
   fs.writeFileSync('lexicon.txt', txt)
 
 
-  // const trie = new Trie({}, 'suffix')
+  const trie = atmpt('prefix')
 
-  // sorted.forEach(a => {
-  //   trie.add(a[0])
-  // })
-  // console.log(trie)
-  // console.log(trie.toString())
-  // fs.writeFileSync('trie.json', JSON.stringify(trie.toString(), null, 2))
+  sorted.forEach(a => {
+    trie.addWord(a[0])
+  })
+  console.dir(trie, { depth: null })
+  console.log(trie.toString())
+  trie.print()
+  fs.writeFileSync('trie.json', trie.toString())
 })

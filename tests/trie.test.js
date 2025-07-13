@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { Trie } from '../src/index.js';
-import { prefixes } from '../examples.js';
+import { prefixes } from './_examples.js';
 
 const notWords = [
   'xyz',

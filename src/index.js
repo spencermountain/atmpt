@@ -1,19 +1,15 @@
-export { Trie } from './Trie.js';
+import Trie from './Trie.js';
 
-export function addPrefix(trie, object) {
-  const newTrie = Trie.fromJSON(trie);
-  return newTrie.addPrefix(object).toJSON();
+const atmpt = function (direction = 'suffix', input) {
+  let trie = new Trie(direction)
+  if (input) {
+    trie.from(input)
+  }
+  return trie;
 }
 
-export function addSuffix(trie, object) {
-  const newTrie = Trie.fromJSON(trie);
-  return newTrie.addSuffix(object).toJSON();
+atmpt.unpack = function (str) {
+  return Trie.fromString(str)
 }
 
-export function parseTrie(str) {
-  return Trie.parse(str).toJSON();
-}
-
-export function packTrie(trie) {
-  return Trie.fromJSON(trie).pack();
-} 
+export default atmpt;

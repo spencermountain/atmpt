@@ -1,19 +1,31 @@
-import { Trie } from './src/index.js';
-import { prefixes, suffixes } from './examples.js';
+import atmpt from './src/index.js';
+import { prefixes, suffixes } from './tests/_examples.js';
 import assert from 'assert';
+import fs from 'fs';
 
+let inputs = [
+  'spoon',
+  'spoons',
+  'spooned',
+]
+let trie = atmpt('prefix')
+inputs.forEach(word => {
+  trie.add(word)
+})
+let packed = trie.toString()
+trie.debug()
 
-let obj = prefixes.c;
-const trie = new Trie(obj, 'prefix');
-// let obj = suffixes.y;
-// const trie = new Trie(obj, 'suffix');
-trie.add(obj);
+let tests = [
+  'spoon',
+  'spoons',
+  'spooned',
+]
+let after = atmpt.unpack(packed)
+tests.forEach(word => {
+  console.log(word, after.has(word))
+})
 
-trie.print();
-console.log(trie.toString());
-
-
-
+// console.log(trie)
 
 // test
 // Object.entries(obj).forEach(([word, val]) => {
