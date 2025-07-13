@@ -1,6 +1,26 @@
 import Node from '../Node.js'
 import tokenize from './01-tokenize.js'
-const strNum = /(\d+$)/
+const strNum = /(\d+)/
+
+// interpret 'ab0c0' into ab, c
+const splitParts = function (str) {
+  let parts = str.split(strNum)
+  let res = []
+  if (parts[parts.length - 1] === '') {
+    parts.pop()
+  }
+  for (let i = 0; i < parts.length; i += 2) {
+    let str = parts[i]
+    let val = parts[i + 1]
+    if (val === '' || val === undefined) {
+      val = null
+    } else {
+      val = parseInt(val, 10)
+    }
+    res.push({ str, val })
+  }
+  return res
+}
 
 // put 'abcd' as descendants
 const addSequence = function (word, node, val) {
@@ -11,26 +31,25 @@ const addSequence = function (word, node, val) {
     curr = curr.children[c]
   })
   // add the value on the end
-  if (val !== undefined && val.length > 0) {
-    val = parseInt(val, 10)
-    curr.val = val
-  }
+  curr.val = val
   return curr
 }
 
-const parse = function (str) {
+const parse = function (str, dictionary) {
   let tokens = tokenize(str)
   let root = new Node()
   let stack = [root]
 
   for (let i = 0; i < tokens.length; i += 1) {
     let { depth, str } = tokens[i]
-    let [word, val] = str.split(strNum)
+    // interpret 'ab0c0' into ab, c
+    let parts = splitParts(str)
     let curr = stack[stack.length - 1]
-
-    // add all these chars as a sequence
-    let end = addSequence(word, curr, val)
-
+    let end = null
+    parts.forEach(part => {
+      // add consecutive chars as a nested sequence
+      end = addSequence(part.str, curr, part.val)
+    })
     // prepare the stack for the next token
     let nextToken = tokens[i + 1]
     if (nextToken && nextToken.depth > depth) {
