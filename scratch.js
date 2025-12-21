@@ -14,22 +14,38 @@ let inputs = [
 ]
 let tests = [
 ]
-let trie = atmpt(null, 'prefix')
-trie.add('apple', 'NS')
-trie.add('apples', 'NP')
-trie.add('applesauce', 'NS')
+let trie = atmpt(null, 'suffix')
+trie.from({
+  bedfordshire: 'England',
+  aberdeenshire: 'Scotland',
+  buckinghamshire: 'England',
+  argyllshire: 'Scotland',
+  bambridgeshire: 'England',
+  cheshire: 'England',
+  ayrshire: 'Scotland',
+  banffshire: 'Scotland'
+})
+let packed = trie.toString()
+console.log(packed)
+
+let val = trie.get('cheshire') // 'England'
+console.log(val)
+
+// trie.add('apple', 'NS')
+// trie.add('apples', 'NP')
+// trie.add('applesauce', 'NS')
 // inputs.forEach(word => {
 //   trie.add(word)
 // })
-let packed = trie.toString()
-console.log(packed)
-trie.debug()
+// let packed = trie.toString()
+// console.log(packed)
+// trie.debug()
 
-let after = atmpt.unpack(packed)
-after.debug()
-inputs.forEach(word => {
-  console.log(word, after.has(word))
-})
+// let after = atmpt.unpack(packed)
+// after.debug()
+// inputs.forEach(word => {
+//   console.log(word, after.has(word))
+// })
 
 // console.log(trie)
 
