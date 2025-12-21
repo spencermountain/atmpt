@@ -15,9 +15,12 @@ let inputs = [
 let tests = [
 ]
 let trie = atmpt(null, 'prefix')
-inputs.forEach(word => {
-  trie.add(word)
-})
+trie.add('apple', 'NS')
+trie.add('apples', 'NP')
+trie.add('applesauce', 'NS')
+// inputs.forEach(word => {
+//   trie.add(word)
+// })
 let packed = trie.toString()
 console.log(packed)
 trie.debug()
