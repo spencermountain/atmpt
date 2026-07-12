@@ -1,17 +1,22 @@
 import Node from './Node.js';
 import fromString from './pack/fromString.js';
 import toString from './pack/toString.js';
+import generalize from './generalize.js';
 import VERSION from '../_version.js';
-
-const reverseString = (str) => {
-  return str.split('').reverse().join('');
-}
 
 class Trie {
   constructor(direction = 'prefix') {
     this.root = new Node();
     this.direction = direction;
     this.version = VERSION;
+  }
+  // word -> array of chars, reversed for suffix tries (surrogate-safe)
+  chars(word) {
+    const arr = [...word];
+    if (this.direction === 'suffix') {
+      arr.reverse();
+    }
+    return arr;
   }
   from(input) {
     // support for compressed string as input
@@ -34,60 +39,58 @@ class Trie {
   }
   add(word, value = true) {
     let node = this.root;
-    const processedWord = this.direction === 'suffix' ? reverseString(word) : word;
-    const chars = [...processedWord];
-
-    for (const char of chars) {
+    node.addCount(value);
+    for (const char of this.chars(word)) {
       if (!node.children[char]) {
         node.children[char] = new Node();
       }
       node = node.children[char];
+      node.addCount(value);
     }
     node.value = value;
-    // this.root.prune();
+    node.rule = false;
     return this;
   }
 
   getNode(key) {
     let node = this.root;
-    const processedKey = this.direction === 'suffix' ? reverseString(key) : key;
-    const chars = [...processedKey];
-    for (const char of chars) {
+    for (const char of this.chars(key)) {
       node = node.children[char];
+      if (!node) {
+        return null;
+      }
     }
     return node;
   }
+  // is this word (or rule ending) explicitly stored?
   has(key) {
-    let node = this.root;
-    const processedKey = this.direction === 'suffix' ? reverseString(key) : key;
-    const chars = [...processedKey];
-    for (const char of chars) {
-      if (!node.children[char]) {
-        return false
-      }
-      node = node.children[char];
-    }
-    // must not match a incomplete word
-    if (node.value === null) {
-      return false
-    }
-    return true
+    const node = this.getNode(key);
+    return node !== null && node.value !== null;
   }
+  // the tag for this word: its stored value if the full path ends on one,
+  // otherwise the deepest rule value along the way (a generalized guess)
   get(key) {
-    let bestMatch = null;
     let node = this.root;
-    const processedKey = this.direction === 'suffix' ? reverseString(key) : key;
-    const chars = [...processedKey];
-    for (const char of chars) {
-      if (!node.children[char]) {
-        break;
-      }
+    let deepestRule = node.rule && node.value !== null ? node.value : null;
+    for (const char of this.chars(key)) {
       node = node.children[char];
-      if (node.value !== null) {
-        bestMatch = node.value;
+      if (!node) {
+        return deepestRule;
+      }
+      if (node.value !== null && node.rule) {
+        deepestRule = node.value;
       }
     }
-    return bestMatch;
+    if (node.value !== null) {
+      return node.value;
+    }
+    return deepestRule;
+  }
+
+  // collapse pure subtrees into suffix/prefix rules; keep exceptions in place
+  generalize(opts = {}) {
+    generalize(this.root, opts);
+    return this;
   }
 
   toJSON() {
@@ -111,7 +114,7 @@ class Trie {
     if (version !== VERSION) {
       console.warn('Warning: Different atmpt version'); // eslint-disable-line
     }
-    const trie = new Trie({}, direction);
+    const trie = new Trie(direction);
     trie.root = root;
     return trie;
   }

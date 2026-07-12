@@ -1,12 +1,24 @@
+import { escapeChar, escapeValue } from './escape.js';
+
+// packed format:
+//   <pre|post>|<version>            header
+//   <tag>|<tag>|...                 dictionary, most frequent first
+//   <body>                          the trie
+//
+// body grammar (unambiguous):
+//   node  := chars? value? group?
+//   value := digits '!'?            index into dictionary; '!' marks a rule value
+//   group := '(' node+ ')'          required for 2+ children, and for ANY
+//                                   children of a valued node — so a digit run
+//                                   is always followed by '(' , ')' , a new
+//                                   sibling, or the end of the string
+//   chars := word characters; \ ( ) ! digits and newline are backslash-escaped
 const toString = function (root, direction, version) {
   const valueDict = new Map();
   const frequencies = new Map();
   let nextIndex = 0;
 
-  // Escape pipe characters in values
-  const escapeValue = (val) => String(val).replace(/\|/g, '\\|');
-
-  // First pass: count frequencies
+  // First pass: count value frequencies, so common tags get short indices
   const countFrequencies = (node) => {
     if (node.value !== null) {
       frequencies.set(node.value, (frequencies.get(node.value) || 0) + 1);
@@ -23,24 +35,26 @@ const toString = function (root, direction, version) {
   };
 
   const buildString = (node) => {
-    if (Object.keys(node.children).length === 0) {
-      return node.value !== null ? valueDict.get(node.value).toString() : '';
-    }
-
     let result = '';
-    const childEntries = Object.entries(node.children);
-
     if (node.value !== null) {
       result += valueDict.get(node.value).toString();
+      if (node.rule) {
+        result += '!';
+      }
     }
-
-    if (childEntries.length === 1) {
+    const childEntries = Object.entries(node.children)
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    if (childEntries.length === 0) {
+      return result;
+    }
+    // an unvalued single child continues inline as a character chain;
+    // a valued node's children always get parens, to keep the format parseable
+    if (childEntries.length === 1 && node.value === null) {
       const [char, childNode] = childEntries[0];
-      return result + char + buildString(childNode);
+      return result + escapeChar(char) + buildString(childNode);
     }
-
     const childStrings = childEntries.map(([char, childNode]) =>
-      char + buildString(childNode)
+      escapeChar(char) + buildString(childNode)
     );
     return result + `(${childStrings.join('')})`;
   };
@@ -48,13 +62,11 @@ const toString = function (root, direction, version) {
   countFrequencies(root);
   assignIndices();
 
-  // Create dictionary string with escaped values
   const dictString = Array.from(valueDict.entries())
     .sort((a, b) => a[1] - b[1])
     .map(([value]) => escapeValue(value))
     .join('|');
 
-  // Add header line with type and version
   const directionMap = {
     'prefix': 'pre',
     'suffix': 'post'

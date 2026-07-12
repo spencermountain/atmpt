@@ -4,46 +4,49 @@ class Node {
       this.label = label;
     }
     this.value = val;
+    // true when this value was placed by generalize(), not by storing a word
+    this.rule = false;
     this.children = {};
+    // tag frequencies for every word passing through this node (built by add)
+    this.counts = null;
+    this.total = 0;
   }
 
   isLeaf() {
     return Object.keys(this.children).length === 0;
   }
 
-  prune() {
-    // First prune children recursively
-    for (const child of Object.values(this.children)) {
-      child.prune();
+  addCount(tag) {
+    if (!this.counts) {
+      this.counts = new Map();
     }
+    this.counts.set(tag, (this.counts.get(tag) || 0) + 1);
+    this.total += 1;
+  }
 
-    if (this.isLeaf()) {
-      return this;
+  // most-frequent tag through this node, or null if no counts
+  best() {
+    if (!this.counts || this.total === 0) {
+      return null;
     }
-
-    const childValues = new Set(
-      Object.values(this.children)
-        .map(child => child.value)
-        .filter(value => value !== null)
-    );
-
-    if (childValues.size === 1) {
-      const commonValue = Array.from(childValues)[0];
-      const allLeaves = Object.values(this.children).every(child => child.isLeaf());
-
-      if (allLeaves) {
-        this.value = commonValue;
-        this.children = {};
+    let tag = null;
+    let count = 0;
+    for (const [t, c] of this.counts) {
+      if (c > count) {
+        count = c;
+        tag = t;
       }
     }
-
-    return this;
+    return { tag, count, total: this.total };
   }
 
   toJSON() {
     const result = {};
     if (this.value !== null) {
       result.value = this.value;
+      if (this.rule) {
+        result.rule = true;
+      }
     }
     if (!this.isLeaf()) {
       result.children = {};
@@ -56,7 +59,7 @@ class Node {
 
   debug(prefix = '') {
     if (this.value !== null) {
-      console.log(`${prefix} [${this.value}]`);
+      console.log(`${prefix} [${this.value}]${this.rule ? '!' : ''}`);
     }
 
     for (const [char, child] of Object.entries(this.children)) {

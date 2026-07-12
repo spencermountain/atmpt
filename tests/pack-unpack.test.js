@@ -16,6 +16,6 @@ test('simple has', (t) => {
   inputs.forEach(word => {
     assert.strictEqual(t2.has(word), true, word)
   })
-  // assert.strictEqual(t2.has('spoo'), false)
-  // assert.strictEqual(t2.has('f'), false)
+  assert.strictEqual(t2.has('spoo'), false)
+  assert.strictEqual(t2.has('f'), false)
 })
