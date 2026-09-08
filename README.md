@@ -2,123 +2,135 @@ experimental compression of linguistic information by suffix or prefix.
 
 this is a unpublished work in progress.
 
-`atmpt` packs a `{word: tag}` lexicon into a character trie, then into a very small string.
-Its real trick is `generalize()` — collapsing pure subtrees into prefix/suffix *rules*, so the
-trie learns things like *"words ending in -ed are PastTense"*, while irregular words stay stored
-exactly, in the same trie. This makes a tight first-pass POS tagger for any language with
-morphology in its affixes.
+`atmpt` has two models, with two jobs:
+
+* a **Memory** — words in, burn out. It remembers every word and its val, and tallies
+  evidence, but draws no conclusions. It has no lookup api at all.
+* an **Out** — a burned trie, loaded from an image. Rules + exceptions, ready for lookups.
+
+the **burn** is the moment between them: with the evidence complete, pure subtrees collapse
+into prefix/suffix *rules* ("words ending in *-ed* are PastTense"), words the rules cover are
+dropped, and disagreeing words stay put — exceptions living in the same trie, shadowing the
+rule under longest-match lookup. Irregular and closed-class words never generalize, so they
+simply survive as stored words. Nothing needs labelling by hand.
 
 ```js
 import atmpt from './src/index.js'
 
-let trie = atmpt(null, 'prefix')
-trie.add('apple', 'NS')
-trie.add('apples', 'NP')
-trie.add('applesauce', 'NS')
+let memory = atmpt(null, { direction: 'suffix' })
+memory.add('walked', 'PastTense')
+memory.add('talked', 'PastTense')
+memory.add('parked', 'PastTense')
+memory.add('helped', 'PastTense')
+memory.add('naked', 'Adjective')
+memory.add('running', 'Gerund')
+memory.add('sitting', 'Gerund')
+memory.add('jumping', 'Gerund')
+memory.add('the', 'Determiner')
 
-trie.get('apples')
-// 'NP'
-
-console.log(trie.toString())
-// pre|0.1.0
-// NS|NP
-// apple0(s1(auce0))
-```
-
-suffix example:
-```js
-let trie = atmpt(null, 'suffix')
-
-trie.from({
-  bedfordshire: 'England',
-  aberdeenshire: 'Scotland',
-  buckinghamshire: 'England',
-  argyllshire: 'Scotland',
-  bambridgeshire: 'England',
-  cheshire: 'England',
-  ayrshire: 'Scotland',
-  banffshire: 'Scotland'
-})
-
-trie.get('cheshire')
-// 'England'
-
-let packed = trie.toString()
-// post|0.1.0
-// England|Scotland
-// erihs(drofdeb0e(gdirbmab0hc0)ffnab1llygra1mahgnikcub0needreba1rya1)
-
-let again = atmpt.unpack(packed)
-again.get('cheshire')
-// 'England'
-```
-
-### generalize()
-
-give it words with one tag each, then let it find the patterns:
-
-```js
-let trie = atmpt({
-  walked: 'PastTense', talked: 'PastTense', parked: 'PastTense', helped: 'PastTense',
-  naked: 'Adjective',
-  running: 'Gerund', sitting: 'Gerund', jumping: 'Gerund',
-  the: 'Determiner',
-}, 'suffix')
-
-trie.generalize({ minSupport: 3, minPurity: 0.7 })
-
-console.log(trie.toString())
-// post|0.1.0
+let image = memory.burn({ agreement: 0.7 })
+// suf|0.2.0
 // PastTense|Adjective|Gerund|Determiner
 // (d0!(ekan1)eht3g2!)
 ```
 
-that packed string reads: *"-d → PastTense, except naked → Adjective; the → Determiner; -g → Gerund"*.
-Rules and exceptions live in one trie — an exception is just a deeper value that shadows a rule
-under longest-match lookup. Nothing needs labelling by hand: a `!` marks values placed by the
-pruner, and only those fire for unseen words:
+that image reads: *"-d → PastTense, except naked → Adjective; the → Determiner; -g → Gerund"*.
+A `!` marks a rule — a val placed by the burn, which may fire for unseen words. Everything
+else fires on exact match only:
 
 ```js
-trie.get('walked')   // 'PastTense'  (covered by the -d rule)
-trie.get('naked')    // 'Adjective'  (stored exception wins)
-trie.get('zorped')   // 'PastTense'  (never seen — the rule generalizes)
-trie.get('breathe')  // null  ('the' is a stored word, not a rule — it won't fire)
+let out = atmpt.load(image)
+out.get('walked')   // 'PastTense'  (covered by the -d rule)
+out.get('naked')    // 'Adjective'  (stored exception wins)
+out.get('zorped')   // 'PastTense'  (never seen — the rule generalizes)
+out.get('breathe')  // null  ('the' is a stored word, not a rule — it won't fire)
 ```
 
-`minSupport` is how many words a pattern needs before it can become a rule;
-`minPurity` is the fraction of them that must agree. Raise them for precision,
-lower them for coverage.
+### the knobs
+
+`support` is how many words a pattern needs before it can become a rule; `agreement` is the
+fraction of them that must agree. Set them at construction or per-burn. A burn is a pure
+projection — the memory is never changed — so re-burning the same memory at different knobs
+is cheap (~20ms on an 18k-word lexicon), and you can sweep them to trade size against trust:
+
+```js
+memory.burn({ agreement: 0.95 })  // fewer, stricter rules — bigger image
+memory.burn({ agreement: 0.55 })  // eager rules — smallest image
+memory.burn({ support: 9999 })    // no rules at all: verbatim storage
+```
+
+### the diff
+
+pass `{ diff: true }` and each `add()` prints the word, painted by what it cost:
+**blue** characters created new trie structure, **yellow** characters rode existing paths.
+A solid-yellow word added nothing new. That's the whole diff — no numbers, no conclusions;
+those wait for the burn.
+
+### the burn report
+
+```js
+memory.burn({ report: true })
+```
+```
+burn ▸ 18,720 words · support 3 · agreement 0.85
+  rules: 659   covered: 5,783   kept: 12,937 (418 exceptions)
+  image: 62.5kb  (verbatim: 86.8kb)
+  top rules:
+    -ting → Gerund   349 words
+    -gs → Plural   296 words
+    -na → FemaleName   232 words
+  near-rules:
+    -d → PastTense   1640/2470   spoilers: pseud (Abbreviation), aud (Currency), ...
+    -st → Superlative   390/527   spoilers: est (Abbreviation), lest (Condition), ...
+```
+
+*near-rules* are patterns that almost made the cut, with the **spoilers** that blocked
+them — half the time a spoiler turns out to be a mis-tagged word, which makes the report a
+decent lexicon linter.
+
+### patching
+
+a burned Out can take exact-word additions:
+
+```js
+out.patch('zonked', 'Adjective')
+out.toString() // re-serialize, patches included
+```
+
+patches are always correct — they shadow rules via longest-match — and they can never mint a
+rule, because the evidence is gone. But bytes pile up: re-burning from the source words is
+always the better path. Keep your word list; a rebuild costs ~40ms.
 
 ### numbers
 
-on a real 18,720-word / 46-tag English lexicon:
+compromise's 18,720-word / 46-val English lexicon:
 
 |  | size | gzipped |
 |---|---|---|
 | JSON | 389kb | 71kb |
-| packed | 87kb | 47kb |
-| packed + generalized | 62kb | 36kb |
+| image, verbatim (no rules) | 87kb | 47kb |
+| image, default knobs | 62kb | 36kb |
 
-with 100% fidelity on every stored word after pack → unpack, and ~83% precision
-tagging unseen words from the rules alone. pack ≈ 20ms, unpack ≈ 6ms.
+with 100% fidelity on every remembered word, at every knob setting. burn ≈ 30ms, load ≈ 5ms.
 
 ### api
 
-* `atmpt(input?, direction?)` — make a trie; direction is `'prefix'` or `'suffix'` (default `'suffix'`)
-* `trie.add(word, tag)` / `trie.from(objOrArray)` — add words
-* `trie.get(word)` — the word's tag: exact if stored, otherwise the deepest rule that covers it
-* `trie.has(word)` — is this word (or rule ending) explicitly stored?
-* `trie.generalize({ minSupport, minPurity })` — collapse pure subtrees into rules
-* `trie.toString()` — pack to a string
-* `atmpt.unpack(str)` — restore a trie from a packed string
+* `atmpt(input?, opts?)` — make a Memory; opts: `{ direction: 'suffix' | 'prefix', support, agreement, diff }`
+* `memory.add(word, val)` — remember a word (that's the whole public surface, plus:)
+* `memory.burn(opts?)` — draw conclusions, return the image string; opts override the knobs, plus `{ report: true }`
+* `atmpt.load(image)` — an Out
+* `out.get(word)` — the word's val: exact if stored, else the deepest covering rule
+* `out.has(word)` — is this word (or rule ending) explicitly stored?
+* `out.patch(word, val)` / `out.patched` — exact-word additions, and how many so far
+* `out.toString()` / `out.toJSON()` / `out.debug()`
 
-words may contain any characters — digits, parens, pipes, emoji and newlines are escaped in the
-packed form. tags round-trip as strings.
+words may contain any characters — digits, parens, pipes, emoji and newlines are escaped in
+the image. vals round-trip as strings.
 
 there's also a small cli:
 ```sh
-atmpt pack words.json --generalize > packed.txt
-atmpt unpack packed.txt
+atmpt burn words.json --report > image.txt
+atmpt load image.txt
 ```
 
 you're free to play with and use

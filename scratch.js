@@ -1,65 +1,24 @@
 import atmpt from './src/index.js';
-import { prefixes, suffixes } from './tests/_examples.js';
-import assert from 'assert';
-import fs from 'fs';
 
-let inputs = [
-  // 'pre',
-  // 'preone',
-  // 'preok',
-  // 'pretwo',
-  'spoon',
-  'spoons',
-  'spooned',
-]
-let tests = [
-]
-let trie = atmpt(null, 'suffix')
-trie.from({
-  bedfordshire: 'England',
-  aberdeenshire: 'Scotland',
-  buckinghamshire: 'England',
-  argyllshire: 'Scotland',
-  bambridgeshire: 'England',
-  cheshire: 'England',
-  ayrshire: 'Scotland',
-  banffshire: 'Scotland'
-})
-let packed = trie.toString()
-console.log(packed)
+// words in — the diff paints each word by what it cost:
+// blue = new characters, yellow = characters that rode existing paths
+let memory = atmpt(null, { direction: 'suffix', diff: true })
+memory.add('walked', 'PastTense')
+memory.add('talked', 'PastTense')
+memory.add('parked', 'PastTense')
+memory.add('helped', 'PastTense')
+memory.add('naked', 'Adjective')
+memory.add('running', 'Gerund')
+memory.add('sitting', 'Gerund')
+memory.add('jumping', 'Gerund')
+memory.add('the', 'Determiner')
 
-let val = trie.get('cheshire') // 'England'
-console.log(val)
+// burn out — conclusions are drawn here, from complete evidence
+let image = memory.burn({ agreement: 0.7, report: true })
+console.log(image)
 
-// trie.add('apple', 'NS')
-// trie.add('apples', 'NP')
-// trie.add('applesauce', 'NS')
-// inputs.forEach(word => {
-//   trie.add(word)
-// })
-// let packed = trie.toString()
-// console.log(packed)
-// trie.debug()
-
-// let after = atmpt.unpack(packed)
-// after.debug()
-// inputs.forEach(word => {
-//   console.log(word, after.has(word))
-// })
-
-// console.log(trie)
-
-// test
-// Object.entries(obj).forEach(([word, val]) => {
-//   const result = trie.get(word);
-//   console.log(`${word} -> ${result}, ${val}`);
-//   assert.strictEqual(result, val, `${word} : ${result}  (wanted ${val})`);
-// });
-
-// console.log(trie.get('doughnuasdf'));
-// console.log(trie.get('doughnu'));
-// console.log(trie.get('doughn'));
-// console.log(trie.get('dough'));
-// console.log(trie.get('doug'));
-// console.log(trie.get('dou'));
-// console.log(trie.get('do'));
+let out = atmpt.load(image)
+console.log('walked  →', out.get('walked'))   // PastTense  (covered by the -d rule)
+console.log('naked   →', out.get('naked'))    // Adjective  (stored exception wins)
+console.log('zorped  →', out.get('zorped'))   // PastTense  (never seen — the rule generalizes)
+console.log('breathe →', out.get('breathe'))  // null       ('the' is a word, not a rule)

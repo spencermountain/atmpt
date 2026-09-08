@@ -1,15 +1,24 @@
-import Trie from './Trie.js';
+import Memory from './Memory.js';
+import Out from './Out.js';
 
-const atmpt = function (input, direction = 'suffix') {
-  let trie = new Trie(direction)
-  if (input) {
-    trie.from(input)
+// atmpt(input?, opts?) -> a working Memory: words in, burn out.
+// atmpt.load(image)    -> a burned Out: lookups and patches.
+const atmpt = function (input, opts = {}) {
+  const memory = new Memory(opts);
+  if (Array.isArray(input)) {
+    input.forEach(word => {
+      memory.add(word);
+    });
+  } else if (input && typeof input === 'object') {
+    for (const [word, val] of Object.entries(input)) {
+      memory.add(word, val);
+    }
   }
-  return trie;
-}
+  return memory;
+};
 
-atmpt.unpack = function (str) {
-  return Trie.fromString(str)
-}
+atmpt.load = function (image) {
+  return Out.load(image);
+};
 
 export default atmpt;

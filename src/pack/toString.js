@@ -1,27 +1,27 @@
 import { escapeChar, escapeValue } from './escape.js';
 
-// packed format:
-//   <pre|post>|<version>            header
-//   <tag>|<tag>|...                 dictionary, most frequent first
-//   <body>                          the trie
+// image format:
+//   <pre|suf>|<version>            header
+//   <val>|<val>|...                dictionary, most frequent first
+//   <body>                         the trie
 //
 // body grammar (unambiguous):
-//   node  := chars? value? group?
-//   value := digits '!'?            index into dictionary; '!' marks a rule value
-//   group := '(' node+ ')'          required for 2+ children, and for ANY
-//                                   children of a valued node — so a digit run
-//                                   is always followed by '(' , ')' , a new
-//                                   sibling, or the end of the string
+//   node  := chars? val? group?
+//   val   := digits '!'?           index into dictionary; '!' marks a rule
+//   group := '(' node+ ')'         required for 2+ children, and for ANY
+//                                  children of a node carrying a val — so a
+//                                  digit run is always followed by '(' , ')' ,
+//                                  a new sibling, or the end of the string
 //   chars := word characters; \ ( ) ! digits and newline are backslash-escaped
 const toString = function (root, direction, version) {
-  const valueDict = new Map();
+  const valDict = new Map();
   const frequencies = new Map();
   let nextIndex = 0;
 
-  // First pass: count value frequencies, so common tags get short indices
+  // First pass: count val frequencies, so common vals get short indices
   const countFrequencies = (node) => {
-    if (node.value !== null) {
-      frequencies.set(node.value, (frequencies.get(node.value) || 0) + 1);
+    if (node.val !== null) {
+      frequencies.set(node.val, (frequencies.get(node.val) || 0) + 1);
     }
     Object.values(node.children).forEach(countFrequencies);
   };
@@ -29,15 +29,15 @@ const toString = function (root, direction, version) {
   const assignIndices = () => {
     Array.from(frequencies.entries())
       .sort((a, b) => b[1] - a[1])
-      .forEach(([value]) => {
-        valueDict.set(value, nextIndex++);
+      .forEach(([val]) => {
+        valDict.set(val, nextIndex++);
       });
   };
 
   const buildString = (node) => {
     let result = '';
-    if (node.value !== null) {
-      result += valueDict.get(node.value).toString();
+    if (node.val !== null) {
+      result += valDict.get(node.val).toString();
       if (node.rule) {
         result += '!';
       }
@@ -47,9 +47,9 @@ const toString = function (root, direction, version) {
     if (childEntries.length === 0) {
       return result;
     }
-    // an unvalued single child continues inline as a character chain;
-    // a valued node's children always get parens, to keep the format parseable
-    if (childEntries.length === 1 && node.value === null) {
+    // a val-less single child continues inline as a character chain;
+    // a val-carrying node's children always get parens, to stay parseable
+    if (childEntries.length === 1 && node.val === null) {
       const [char, childNode] = childEntries[0];
       return result + escapeChar(char) + buildString(childNode);
     }
@@ -62,14 +62,14 @@ const toString = function (root, direction, version) {
   countFrequencies(root);
   assignIndices();
 
-  const dictString = Array.from(valueDict.entries())
+  const dictString = Array.from(valDict.entries())
     .sort((a, b) => a[1] - b[1])
-    .map(([value]) => escapeValue(value))
+    .map(([val]) => escapeValue(val))
     .join('|');
 
   const directionMap = {
     'prefix': 'pre',
-    'suffix': 'post'
+    'suffix': 'suf'
   };
   return `${directionMap[direction]}|${version}\n${dictString}\n${buildString(root)}`;
 }

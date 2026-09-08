@@ -1,6 +1,6 @@
 {
   "name": "atmpt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A trie-based prefix/suffix manipulation library",
   "type": "module",
   "main": "src/index.js",
@@ -17,6 +17,7 @@
     "suffix",
     "string manipulation"
   ],
+
   "author": "",
   "license": "MIT",
   "dependencies": {

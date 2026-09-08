@@ -76,14 +76,14 @@ nlp.streamFile(file, (s) => {
   fs.writeFileSync('lexicon.txt', txt)
 
 
-  const trie = atmpt(null, 'prefix')
+  const memory = atmpt(null, { direction: 'prefix', diff: true })
 
   sorted.forEach(a => {
-    trie.add(a[0])
+    memory.add(a[0])
   })
-  // console.dir(trie, { depth: null })
-  // console.log(trie.toString())
-  trie.debug()
+  // one-val word list: burn with support 9999 for pure storage
+  const image = memory.burn({ support: 9999, report: true })
+  const out = atmpt.load(image)
 
   let test = [
     'throne',
@@ -92,8 +92,8 @@ nlp.streamFile(file, (s) => {
     'asdflkj'
   ]
   test.forEach(word => {
-    console.log(word, trie.has(word))
+    console.log(word, out.has(word))
   })
 
-  fs.writeFileSync('trie.json', trie.toString())
+  fs.writeFileSync('trie.txt', image)
 })

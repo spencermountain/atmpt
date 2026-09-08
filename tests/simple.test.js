@@ -2,63 +2,64 @@ import test from 'node:test';
 import assert from 'node:assert';
 import atmpt from '../src/index.js';
 
+// storage semantics: burn with support high enough that no rules mint
+const store = (memory) => atmpt.load(memory.burn({ support: 9999 }));
+
 test('simple has', (t) => {
-  let trie = atmpt()
-  assert.strictEqual(trie.has('apple'), false)
-  trie.add('apple')
-  assert.strictEqual(trie.has('apple'), true)
-  assert.strictEqual(trie.has('apples'), false)
-  assert.strictEqual(trie.has('app'), false)
-  assert.strictEqual(trie.has('ap'), false)
-  assert.strictEqual(trie.has('a'), false)
-  assert.strictEqual(trie.has(''), false)
+  let out = store(atmpt(['apple']))
+  assert.strictEqual(out.has('apple'), true)
+  assert.strictEqual(out.has('apples'), false)
+  assert.strictEqual(out.has('app'), false)
+  assert.strictEqual(out.has('ap'), false)
+  assert.strictEqual(out.has('a'), false)
+  assert.strictEqual(out.has(''), false)
 })
 
 test('simple overlap', (t) => {
-  let trie = atmpt()
-  trie.add('apple')
-  trie.add('apples')
-  assert.strictEqual(trie.has('apple'), true)
-  assert.strictEqual(trie.has('apples'), true)
-  assert.strictEqual(trie.has('applesauce'), false)
-  assert.strictEqual(trie.has('applesauce'), false)
-  assert.strictEqual(trie.has('app'), false)
-  assert.strictEqual(trie.has('elppa'), false)
-  assert.strictEqual(trie.has('elppas'), false)
+  let out = store(atmpt(['apple', 'apples']))
+  assert.strictEqual(out.has('apple'), true)
+  assert.strictEqual(out.has('apples'), true)
+  assert.strictEqual(out.has('applesauce'), false)
+  assert.strictEqual(out.has('app'), false)
+  assert.strictEqual(out.has('elppa'), false)
+  assert.strictEqual(out.has('elppas'), false)
 })
 
 test('simple overlap 2', (t) => {
-  let trie = atmpt()
   let inputs = [
     'spoon',
     'spoons',
     'spooned',
     'fork',
   ]
+  let out = store(atmpt(inputs, { direction: 'prefix' }))
   inputs.forEach(word => {
-    trie.add(word)
+    assert.strictEqual(out.has(word), true, word)
   })
-  inputs.forEach(word => {
-    assert.strictEqual(trie.has(word), true, word)
-  })
+  assert.strictEqual(out.has('spoo'), false)
+  assert.strictEqual(out.has('f'), false)
 })
 
 test('simple suffix', (t) => {
-  let trie = atmpt(null, 'suffix')
-  trie.add('apple')
-  trie.add('apples')
-  assert.strictEqual(trie.has('apple'), true)
-  assert.strictEqual(trie.has('apples'), true)
-  assert.strictEqual(trie.has('applesauce'), false)
-  assert.strictEqual(trie.has('applesauce'), false)
-  assert.strictEqual(trie.has('app'), false)
-  assert.strictEqual(trie.has(''), false)
-  assert.strictEqual(trie.has('elppa'), false)
-  assert.strictEqual(trie.has('elppas'), false)
-  assert.strictEqual(trie.has('elppasauce'), false)
-  assert.strictEqual(trie.has('elppasauce'), false)
-  assert.strictEqual(trie.has('elpp'), false)
-  assert.strictEqual(trie.has('el'), false)
-  assert.strictEqual(trie.has('e'), false)
-  assert.strictEqual(trie.has(''), false)
+  let out = store(atmpt(['apple', 'apples'], { direction: 'suffix' }))
+  assert.strictEqual(out.has('apple'), true)
+  assert.strictEqual(out.has('apples'), true)
+  assert.strictEqual(out.has('applesauce'), false)
+  assert.strictEqual(out.has('app'), false)
+  assert.strictEqual(out.has(''), false)
+  assert.strictEqual(out.has('elppa'), false)
+  assert.strictEqual(out.has('elppas'), false)
+  assert.strictEqual(out.has('elpp'), false)
+  assert.strictEqual(out.has('el'), false)
+  assert.strictEqual(out.has('e'), false)
+})
+
+test('one-val word lists collapse to a root rule at default knobs', (t) => {
+  // every word has val `true`, so the evidence is 100% pure — the whole
+  // trie collapses into a single root rule
+  let image = atmpt(['spoon', 'spoons', 'spooned', 'fork']).burn()
+  let out = atmpt.load(image)
+  assert.ok(image.length < 20, image)
+  assert.strictEqual(out.get('spoon'), 'true')
+  assert.strictEqual(out.get('anything at all'), 'true')
 })

@@ -1,14 +1,14 @@
-import Node from '../Node.js'
+import OutNode from '../OutNode.js'
 
 const isDigit = (ch) => ch >= '0' && ch <= '9'
 
-// single-pass parser for the packed body (see toString.js for the grammar).
+// single-pass parser for the image body (see toString.js for the grammar).
 // `base` is the node the next character extends; `groupStack` holds the
-// owners of open '(' groups; after a value or a ')' the current node is
+// owners of open '(' groups; after a val or a ')' the current node is
 // complete, so the next character starts a sibling under the group owner.
 const parse = function (body, dictionary) {
   const str = [...body] // code points, so surrogate pairs stay whole
-  const root = new Node()
+  const root = new OutNode()
   const groupStack = []
   let base = root
   let complete = false
@@ -17,7 +17,7 @@ const parse = function (body, dictionary) {
     if (complete) {
       // a new sibling — attach under the enclosing group's owner
       if (groupStack.length === 0) {
-        throw new Error('atmpt: unexpected sibling at top level of packed string')
+        throw new Error('atmpt: unexpected sibling at top level of image')
       }
       base = groupStack[groupStack.length - 1]
       complete = false
@@ -26,7 +26,7 @@ const parse = function (body, dictionary) {
   const addChild = (ch) => {
     startChar()
     if (!base.children[ch]) {
-      base.children[ch] = new Node()
+      base.children[ch] = new OutNode()
     }
     base = base.children[ch]
   }
@@ -43,13 +43,13 @@ const parse = function (body, dictionary) {
       complete = true
     } else if (ch === ')') {
       if (groupStack.length === 0) {
-        throw new Error('atmpt: unbalanced ")" in packed string')
+        throw new Error('atmpt: unbalanced ")" in image')
       }
       groupStack.pop()
       complete = true
     } else if (isDigit(ch)) {
       if (complete) {
-        throw new Error('atmpt: unexpected value index in packed string')
+        throw new Error('atmpt: unexpected val index in image')
       }
       let num = ch
       while (isDigit(str[i + 1])) {
@@ -60,7 +60,7 @@ const parse = function (body, dictionary) {
       if (dictionary[idx] === undefined) {
         console.warn(`Warning: dictionary[${idx}] not found`) // eslint-disable-line
       } else {
-        base.value = dictionary[idx]
+        base.val = dictionary[idx]
       }
       if (str[i + 1] === '!') {
         base.rule = true
@@ -72,7 +72,7 @@ const parse = function (body, dictionary) {
     }
   }
   if (groupStack.length !== 0) {
-    throw new Error('atmpt: unclosed "(" in packed string')
+    throw new Error('atmpt: unclosed "(" in image')
   }
   return root
 }

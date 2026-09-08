@@ -6,7 +6,7 @@ const fromString = function (str) {
   const first = str.indexOf('\n');
   const second = str.indexOf('\n', first + 1);
   if (first === -1 || second === -1) {
-    throw new Error('atmpt: packed string must have header, dictionary and body lines');
+    throw new Error('atmpt: an image must have header, dictionary and body lines');
   }
   const header = str.slice(0, first);
   const dict = str.slice(first + 1, second);

@@ -12,7 +12,7 @@ const mulberry32 = (seed) => () => {
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 const trickyChars = '0123456789()!|\\ \n🍎é';
-const tags = ['Noun', 'Verb', 'Adjective', 'Pipe|Tag', 'true', 'multi word tag'];
+const vals = ['Noun', 'Verb', 'Adjective', 'Pipe|Val', 'true', 'multi word val'];
 
 const randomWord = (rand, tricky) => {
   const len = 1 + Math.floor(rand() * 10);
@@ -24,26 +24,41 @@ const randomWord = (rand, tricky) => {
   return word;
 };
 
-const roundTrip = (obj, direction) => {
-  const trie = atmpt(obj, direction);
-  const unpacked = atmpt.unpack(trie.toString());
-  assert.strictEqual(unpacked.direction, direction, 'direction survives');
-  for (const [word, value] of Object.entries(obj)) {
-    assert.strictEqual(unpacked.get(word), value, `get(${JSON.stringify(word)})`);
-    assert.strictEqual(unpacked.has(word), true, `has(${JSON.stringify(word)})`);
+// at any knobs, get() must return the exact val for every remembered word
+const checkFidelity = (obj, direction, burnOpts) => {
+  const image = atmpt(obj, { direction }).burn(burnOpts);
+  const out = atmpt.load(image);
+  assert.strictEqual(out.direction, direction, 'direction survives');
+  for (const [word, val] of Object.entries(obj)) {
+    assert.strictEqual(out.get(word), val, `get(${JSON.stringify(word)})`);
   }
-  return unpacked;
+  return out;
 };
 
-test('round-trip: random word sets, both directions', () => {
+test('round-trip: random word sets, both directions, default knobs', () => {
   const rand = mulberry32(42);
   for (let iter = 0; iter < 25; iter += 1) {
     const obj = {};
     const n = 5 + Math.floor(rand() * 80);
     for (let i = 0; i < n; i += 1) {
-      obj[randomWord(rand, false)] = tags[Math.floor(rand() * tags.length)];
+      obj[randomWord(rand, false)] = vals[Math.floor(rand() * vals.length)];
     }
-    roundTrip(obj, iter % 2 === 0 ? 'prefix' : 'suffix');
+    checkFidelity(obj, iter % 2 === 0 ? 'prefix' : 'suffix', {});
+  }
+});
+
+test('round-trip: pure storage (no rules), has() intact', () => {
+  const rand = mulberry32(7);
+  for (let iter = 0; iter < 15; iter += 1) {
+    const obj = {};
+    const n = 5 + Math.floor(rand() * 60);
+    for (let i = 0; i < n; i += 1) {
+      obj[randomWord(rand, false)] = vals[Math.floor(rand() * vals.length)];
+    }
+    const out = checkFidelity(obj, iter % 2 === 0 ? 'prefix' : 'suffix', { support: 9999 });
+    for (const word of Object.keys(obj)) {
+      assert.strictEqual(out.has(word), true, `has(${JSON.stringify(word)})`);
+    }
   }
 });
 
@@ -53,14 +68,13 @@ test('round-trip: words with reserved and unicode characters', () => {
     const obj = {};
     const n = 5 + Math.floor(rand() * 40);
     for (let i = 0; i < n; i += 1) {
-      obj[randomWord(rand, true)] = tags[Math.floor(rand() * tags.length)];
+      obj[randomWord(rand, true)] = vals[Math.floor(rand() * vals.length)];
     }
-    roundTrip(obj, iter % 2 === 0 ? 'prefix' : 'suffix');
+    checkFidelity(obj, iter % 2 === 0 ? 'prefix' : 'suffix', {});
   }
 });
 
 test('round-trip: nested words (chains)', () => {
-  // words that are prefixes of each other — the old format was ambiguous here
   const obj = {
     walk: 'Verb',
     walked: 'PastTense',
@@ -68,45 +82,37 @@ test('round-trip: nested words (chains)', () => {
     walkers: 'Plural',
     w: 'Letter',
   };
-  const unpacked = roundTrip(obj, 'prefix');
-  // no phantom words invented by unpacking
-  assert.strictEqual(unpacked.has('ed'), false);
-  assert.strictEqual(unpacked.has('er'), false);
-  assert.strictEqual(unpacked.has('walke'), false);
+  const out = checkFidelity(obj, 'prefix', { support: 9999 });
+  // no phantom words invented by loading
+  assert.strictEqual(out.has('ed'), false);
+  assert.strictEqual(out.has('er'), false);
+  assert.strictEqual(out.has('walke'), false);
 });
 
-test('round-trip: identical packing bug regression', () => {
+test('round-trip: identical image bug regression', () => {
   // these two used to pack to the same string
-  const a = atmpt({ walk: 'A', walked: 'A', q: 'B' }, 'prefix').toString();
-  const b = atmpt({ walk: 'A', ed: 'A', q: 'B' }, 'prefix').toString();
+  const a = atmpt({ walk: 'A', walked: 'A', q: 'B' }, { direction: 'prefix' }).burn({ support: 9999 });
+  const b = atmpt({ walk: 'A', ed: 'A', q: 'B' }, { direction: 'prefix' }).burn({ support: 9999 });
   assert.notStrictEqual(a, b);
 });
 
 test('round-trip: multi-level unnesting', () => {
   const obj = { ab: 'X', acd: 'X', ace: 'X', q: 'Y' };
-  const unpacked = roundTrip(obj, 'prefix');
-  assert.strictEqual(unpacked.has('aq'), false, 'no phantom aq');
+  const out = checkFidelity(obj, 'prefix', { support: 9999 });
+  assert.strictEqual(out.has('aq'), false, 'no phantom aq');
 });
 
 test('round-trip: trailing content after last paren', () => {
-  // root chain with no parens at all used to tokenize to nothing
-  const unpacked = roundTrip({ apple: 'NS', apples: 'NP', applesauce: 'NS' }, 'prefix');
-  assert.strictEqual(unpacked.get('applesauce'), 'NS');
-});
-
-test('round-trip: suffix direction preserved', () => {
-  const obj = { walked: 'PastTense', talked: 'PastTense', running: 'Gerund' };
-  const unpacked = roundTrip(obj, 'suffix');
-  assert.strictEqual(unpacked.direction, 'suffix');
-  assert.strictEqual(unpacked.get('walked'), 'PastTense');
+  const out = checkFidelity({ apple: 'NS', apples: 'NP', applesauce: 'NS' }, 'prefix', { support: 9999 });
+  assert.strictEqual(out.get('applesauce'), 'NS');
 });
 
 test('round-trip: digits and punctuation in words', () => {
-  roundTrip({ 'mp3': 'Noun', '4th': 'Ordinal', 'b2b': 'Noun', ':-(': 'Emoticon', 'bang!': 'Excl' }, 'prefix');
+  checkFidelity({ 'mp3': 'Noun', '4th': 'Ordinal', 'b2b': 'Noun', ':-(': 'Emoticon', 'bang!': 'Excl' }, 'prefix', {});
 });
 
 test('getNode returns null for missing keys', () => {
-  const trie = atmpt({ apple: 'Noun' }, 'prefix');
-  assert.strictEqual(trie.getNode('banana'), null);
-  assert.strictEqual(trie.getNode('apples'), null);
+  const out = atmpt.load(atmpt({ apple: 'Noun' }, { direction: 'prefix' }).burn({ support: 9999 }));
+  assert.strictEqual(out.getNode('banana'), null);
+  assert.strictEqual(out.getNode('apples'), null);
 });
