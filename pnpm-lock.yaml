@@ -1,0 +1,56 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      compromise:
+        specifier: ^14.14.4
+        version: 14.17.0
+      compromise-speed:
+        specifier: ^0.1.2
+        version: 0.1.2(compromise@14.17.0)
+
+packages:
+
+  compromise-speed@0.1.2:
+    resolution: {integrity: sha512-tlYd+MPeESgaOmKsED46rbzXMdlTXobtuMNYPbUDGzF1DJ9M2gnnxiyO2oQWFDkaRTtJUwTWfQVpZXCK7axkSw==}
+    peerDependencies:
+      compromise: '>=14.0.0'
+
+  compromise@14.17.0:
+    resolution: {integrity: sha512-zw9iEcts/8tMDASNopMQEs3Pclkx2Xk7XCltAb/oV1LEZcCQpDaalAtFmvuxYo+wnVDsW3H3oT16mw9qVHpkqA==}
+    engines: {node: '>=12.0.0'}
+
+  efrt@2.7.0:
+    resolution: {integrity: sha512-/RInbCy1d4P6Zdfa+TMVsf/ufZVotat5hCw3QXmWtjU+3pFEOvOQ7ibo3aIxyCJw2leIeAMjmPj+1SLJiCpdrQ==}
+    engines: {node: '>=12.0.0'}
+
+  grad-school@0.0.5:
+    resolution: {integrity: sha512-rXunEHF9M9EkMydTBux7+IryYXEZinRk6g8OBOGDBzo/qWJjhTxy86i5q7lQYpCLHN8Sqv1XX3OIOc7ka2gtvQ==}
+    engines: {node: '>=8.0.0'}
+
+  suffix-thumb@5.0.3:
+    resolution: {integrity: sha512-d77avV91FwJkDA0juRQ19XjE1lE1cNCVIWS0ZRicXqdMN28yjO5LltzEkZBNAWS7qHpn37c1fU4PkIJ/rjJQEA==}
+
+snapshots:
+
+  compromise-speed@0.1.2(compromise@14.17.0):
+    dependencies:
+      compromise: 14.17.0
+
+  compromise@14.17.0:
+    dependencies:
+      efrt: 2.7.0
+      grad-school: 0.0.5
+      suffix-thumb: 5.0.3
+
+  efrt@2.7.0: {}
+
+  grad-school@0.0.5: {}
+
+  suffix-thumb@5.0.3: {}
