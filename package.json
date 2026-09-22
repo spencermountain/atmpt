@@ -2,11 +2,15 @@
   "name": "atmpt",
   "version": "0.2.0",
   "description": "A trie-based prefix/suffix manipulation library",
+  "license": "MIT",
+  "repository": "github:spencermountain/atmpt",
+  "author": "Spencer Kelly <spencermountain@gmail.com> (https://spencermountain.dev)",
   "type": "module",
-  "main": "src/index.js",
+  "main": "./src/index.js",
   "bin": {
     "atmpt": "./bin/cli.js"
   },
+  "sideEffects": false,
   "scripts": {
     "test": "node --test --test-reporter=spec tests/*.test.js",
     "watch": "node --watch scratch.js",
@@ -18,9 +22,6 @@
     "suffix",
     "string manipulation"
   ],
-  "author": "Spencer Kelly <spencermountain@gmail.com> (https://spencermountain.dev)",
-  "license": "MIT",
-  "repository": "github:spencermountain/atmpt",
   "dependencies": {
     "compromise": "^14.14.4",
     "compromise-speed": "^0.1.2"
