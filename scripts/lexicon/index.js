@@ -1,5 +1,5 @@
 import nlp from 'compromise'
-import fs from 'fs'
+import fs from 'node:fs'
 import { streamFile } from 'compromise-speed'
 import atmpt from '../../src/index.js';
 nlp.extend(streamFile)
@@ -7,7 +7,7 @@ nlp.extend(streamFile)
 
 // const file = './scripts/lexicon/fresh-prince.txt'
 const file = '/Users/spencer/Desktop/infinite-jest.txt'
-let counts = {}
+const counts = {}
 const hasPunct = /[_()<>,*&#@%.]/
 const hasChar = /[a-zA-Z]/
 const hasNum = /[0-9]/
@@ -38,7 +38,7 @@ nlp.streamFile(file, (s) => {
   s.docs.forEach(a => {
     a.forEach(term => {
       // console.log(term.root, term.normal)
-      let str = term.root || term.implicit || term.normal
+      const str = term.root || term.implicit || term.normal
       if (str) {
         counts[str] = counts[str] || 0
         counts[str] += 1
@@ -72,7 +72,7 @@ nlp.streamFile(file, (s) => {
     }
     return true
   })
-  let txt = sorted.map(a => `${a[0]}   ${a[1]}`).join('\n')
+  const txt = sorted.map(a => `${a[0]}   ${a[1]}`).join('\n')
   fs.writeFileSync('lexicon.txt', txt)
 
 
@@ -85,7 +85,7 @@ nlp.streamFile(file, (s) => {
   const image = memory.burn({ support: 9999, report: true })
   const out = atmpt.load(image)
 
-  let test = [
+  const test = [
     'throne',
     'pulled',
     'pull',

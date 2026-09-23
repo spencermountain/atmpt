@@ -71,7 +71,7 @@ const parse = function (body, dictionary) {
       addChild(ch)
     }
   }
-  if (groupStack.length !== 0) {
+  if (groupStack.length > 0) {
     throw new Error('atmpt: unclosed "(" in image')
   }
   return root
